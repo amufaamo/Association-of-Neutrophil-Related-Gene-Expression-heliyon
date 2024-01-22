@@ -134,6 +134,27 @@ h <- as.dendrogram(hclust(d, method = "ward.D"))
 plot(h)
 ```
 
+## Fig. 3A
+```R
+data <- readRDS('txt/240117_jamb_sctransformed.rds')
+library(Seurat)
+Idents(data) <- 'condition1'
+markers <- FindMarkers(data, ident.1 = "critical", ident.2 = "severe", latent.vars = c("age", "sex"), test.use = "MAST")
+library(clusterProfiler)
+source('Rscript/rprofile.r')
+genes <- markers %>% dplyr::filter(p_val_adj < 0.1 & avg_log2FC > 0) %>% rownames()
+source("Rscript/convert_geneID.r")
+convert_geneID(genes, "SYMBOL", "ENTREZID") -> entre
+entre$ENTREZID -> entre
+ego2 <- enrichGO(gene         = entre,
+                OrgDb         = org.Hs.eg.db,
+                keyType       = 'ENTREZID',
+                ont           = "BP",
+                pAdjustMethod = "BH",
+                pvalueCutoff  = 0.01,
+                qvalueCutoff  = 0.05)
+barplot(ego2)
+```
 
 まずはGoogle documentに書いていく
 https://docs.google.com/document/d/1TGLvam3WYXM4m24sBs_iaXSF9z9YlaodvyV0FA1RKZ8/edit
