@@ -95,5 +95,45 @@ h <- as.dendrogram(hclust(d, method = "ward.D"))
 plot(h)
 ```
 
+## Fig.2
+```R
+data <- readRDS('fig2_jamb_df.rds')
+id <- read.csv('fig2_jamb_singlecell_metadata.csv', header=F)
+names(id) <- c('id', 'sex', 'age')
+
+myedgeR <- function (dataframe, group, design) 
+{
+    count <- mutate_all(dataframe, function(x) as.numeric(as.character(gsub(",", 
+        "", x))))
+    count <- as.matrix(count)
+    group <- factor(group)
+    d <- DGEList(counts = count, group = group)
+    keep <- filterByExpr(d, group = group)
+    d <- d[keep, , keep.lib.sizes = FALSE]
+    d <- calcNormFactors(d)
+    d <- estimateGLMCommonDisp(d, design)
+    d <- estimateGLMTrendedDisp(d, design)
+    d <- estimateGLMTagwiseDisp(d, design)    
+    return(cpm(d))
+}
+group <- c('healthy', 'healthy', 'mild', 'mild', 'severe', 'severe', 'healthy','healthy','healthy','healthy', 'severe')
+                        
+age <- id$age
+sex <- id$sex
+
+# make design matrix                        
+design <- model.matrix(~ group + age + sex)
+
+# normalize
+myedgeR(data, group, design) -> normalized
+
+rho <- cor(normalized, method = "spearman")
+d <- as.dist(1 - rho)
+h <- as.dendrogram(hclust(d, method = "ward.D"))
+
+plot(h)
+```
+
+
 まずはGoogle documentに書いていく
 https://docs.google.com/document/d/1TGLvam3WYXM4m24sBs_iaXSF9z9YlaodvyV0FA1RKZ8/edit
