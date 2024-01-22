@@ -1,15 +1,13 @@
 # Association-of-Neutrophil-Related-Gene-Expression-heliyon
 ## Fig.1.
+```R
 library(edgeR)
+library(tidyverse)
 # Load count dataframe
-furyo <- readRDS("txt/22/220802_coar_tenki_furyo_dataframe.rds")
-ryokou <- readRDS("txt/22/220802_coar_tenki_ryokou_dataframe.rds")
-healthy <- readRDS("txt/22/220802_coar_healthy_dataframe.rds")
+all_ <- readRDS('fig1_jamb_df.rds')
 # Load metadata which is id, age, and sex 
-id <- read.csv('txt/240115_jamb_table.csv', header=FALSE)
+id <- read.csv('fig1_jamb_table.csv', header=FALSE)
 names(id) <- c('id', 'age', 'sex')
-# merge all count dataframe
-cbind(furyo, ryokou, healthy) -> all_
 
 # make edgeR function
 myedgeR <- function(dataframe, group, design){
@@ -27,7 +25,6 @@ myedgeR <- function(dataframe, group, design){
 }
                         
 # make group furyo(NWV), ryokou(WV), healthy
-all_ %>% dplyr::select(-contains("healthy_P")) -> all_
 str_split(names(all_), pattern='_', simplify=TRUE) %>% .[,1] -> group
 
 age <- id$age
@@ -96,6 +93,7 @@ h <- as.dendrogram(hclust(d, method = "ward.D"))
                         
 # Fig 1
 plot(h)
+```
 
 まずはGoogle documentに書いていく
 https://docs.google.com/document/d/1TGLvam3WYXM4m24sBs_iaXSF9z9YlaodvyV0FA1RKZ8/edit
