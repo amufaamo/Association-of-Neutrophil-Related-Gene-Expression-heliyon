@@ -136,7 +136,10 @@ plot(h)
 
 ## Fig. 3A
 ```R
-data <- readRDS('txt/240117_jamb_sctransformed.rds')
+# Download the seurat object below. I cannot upload because this file is big.
+https://drive.google.com/file/d/13pLBTUr1wkpl3mjofjX3_NIAtmwom1x3/view?usp=drive_link
+
+data <- readRDS('fig3_4_jamb_sctransform.rds')
 library(Seurat)
 Idents(data) <- 'condition1'
 markers <- FindMarkers(data, ident.1 = "critical", ident.2 = "severe", latent.vars = c("age", "sex"), test.use = "MAST")
@@ -155,6 +158,13 @@ ego2 <- enrichGO(gene         = entre,
                 qvalueCutoff  = 0.05)
 barplot(ego2)
 ```
+## Fig4
+```R
+data <- readRDS('fig3_4_jamb_sctransform.rds')
+DimPlot(data, group.by='seurat_clusters', label=TRUE)
+DimPlot(data, group.by='condition4')
+```
 
+## 
 まずはGoogle documentに書いていく
 https://docs.google.com/document/d/1TGLvam3WYXM4m24sBs_iaXSF9z9YlaodvyV0FA1RKZ8/edit
