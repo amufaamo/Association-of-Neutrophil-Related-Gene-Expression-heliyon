@@ -163,8 +163,58 @@ barplot(ego2)
 data <- readRDS('fig3_4_jamb_sctransform.rds')
 DimPlot(data, group.by='seurat_clusters', label=TRUE)
 DimPlot(data, group.by='condition4')
-```
 
-## 
-まずはGoogle documentに書いていく
-https://docs.google.com/document/d/1TGLvam3WYXM4m24sBs_iaXSF9z9YlaodvyV0FA1RKZ8/edit
+
+create_df <- function(data){
+    Idents(data) <- 'condition4'
+
+SplitObject(data, split.by='condition4') -> data2
+markerlist <- c()
+map(data2, function(x){try(FindMarkers(x, ident.1 = 'critical', ident.2 = 'severe', group.by='condition1', latent.vars = c("age", "sex"), test.use = 'MAST'))}) -> markerlist
+
+d <- function(x){
+    x <- tibble::rownames_to_column(x, 'gene')
+    x <- dplyr::filter(x, !grepl('IG', gene))
+    return(x)
+}
+
+map(markerlist, d) -> markerlist
+
+lists <- c(4332,2357,6282,567,25801,6279,7305,2495,2512,3579,2215,6280,6283,978,3107,3106,5265,1520,23406,9535,2207,6402,25798,2212,6386,728,8826,5879,391,976,11031,10092,7097,6813,5788,11025,29108,10487,1604,1535,1992,387,527,3689,8635,226,1265)
+source('Rscript/convert_geneID.r')
+convert_geneID(lists, 'ENTREZID', 'SYMBOL')$SYMBOL -> neutrophil_related_genes
+
+df <- data.frame()
+
+df <- as.data.frame(neutrophil_related_genes)
+
+modifym <- function(x){
+    mutate(x, foldchange = case_when(
+        p_val_adj >= 0.1　~ 0,
+        p_val_adj < 0.1 ~ avg_log2FC
+    ))    -> x
+    x %>% dplyr::filter(gene %in% neutrophil_related_genes) -> x
+    x <- x %>% dplyr::select(gene, foldchange)
+    return(x)
+}
+
+map(markerlist, function(x){
+    mutate(x, foldchange = case_when(
+        p_val_adj >= 0.1　~ 0,
+        p_val_adj < 0.1 ~ avg_log2FC
+    ))    -> x
+    x %>% dplyr::filter(gene %in% neutrophil_related_genes) -> x
+    x %>% dplyr::select(gene, foldchange)
+}) -> marker_modify2
+
+dplyr::left_join(df, marker_modify2$'Pre-neu', by=c('neutrophil_related_genes' = 'gene')) -> df
+dplyr::left_join(df, marker_modify2$'Pro-neu', by=c('neutrophil_related_genes' = 'gene')) -> df
+dplyr::left_join(df, marker_modify2$'Mature', by=c('neutrophil_related_genes' = 'gene')) -> df
+
+names(df) <- c('neutrophil_related_genes', 'Pre-neu', 'Pro-neu', 'Mature')
+df <- mutate_all(df, ~replace(., is.na(.), 0))
+return(df)    
+}
+
+df <- create_df(data)
+```
